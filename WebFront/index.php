@@ -1,9 +1,7 @@
 <?php
-$acctname = "kehnin.dyer@oit.edu";
-$acctpass = "pinkballons";
-//TODO: recapta support incase google wants to cock block the auto login
-
-
+include('./Google-Voice-PHP-API/GoogleVoice.php');
+$gv = new GoogleVoice("kehnin", "Password");
+$gv->sendSMS('5035070650', 'Did this work?');
 
 
 
