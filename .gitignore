@@ -1,0 +1,14 @@
+*.avrsuo
+*.swp
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.log
+*.sql
+Thumbs.db
+Icon?
+.DS_Store?
+ehthumbs.db
