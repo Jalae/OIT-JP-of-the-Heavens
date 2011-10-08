@@ -1,0 +1,7 @@
+*.eep
+*.elf
+*.lss
+Makefile
+*.mk
+*.map
+*.d
