@@ -11,17 +11,17 @@
 
 ISR(PCINT1_vect)
 {
-	PORTB ^= 2;
+	PORTB ^= 2;			//not pin 2 to toggle the light
 
 }
 
 int main(void)
 {
-	sei();
-	DDRB = 1<<PB1;
-	PORTB = 0xFF;
+	sei();				//enable interrupts
+	DDRB = 1<<PB1;		//set pin 1 on port B to input
+	PORTB = 0xFF;		//Activate internal pull up resistors on port B
 
-	PCICR = 1<<PCIE1;
+	PCICR = 1<<PCIE1;	
 	PCMSK1 = 1<<PCINT8;
 	//EIMSK = 1<<PCIE1;
 	
@@ -30,7 +30,7 @@ int main(void)
 	
 	
 	
-    while(1)
+    while(1)		//do nothing to test ISR
     {
 		//if(PINB & 0x01)
 		//{
