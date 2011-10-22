@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/delay.h>
 
 
 ISR(PCINT1_vect)
@@ -43,28 +44,54 @@ void gotosleep(char mode)
 	asm("SLEEP"); //is this an assembly instruction?	
 }
 
+
+void activateEmitter()
+{
+	PORTD =  PORTD|(1<<PORTD4); 
+}
+
+void deactivateEmitter()
+{
+	PORTD = PORTD&(~(1<<PORTD4));
+}
+
+//
+//return value
+// XXXXXX<Bit for Empty><Bit for >
+char readSensor()
+{
+	PIND5; //empty
+	PIND6;//dispensed
+}  
+
 int main(void)
 {
-	sei();				//enable interrupts
-	DDRB = 1<<PB1;		//set pin 1 on port B to input
+
+	
+	DDRB = 1<<PORTB1;		//set pin 1 on port B to input
 	PORTB = 0xFF;		//Activate internal pull up resistors on port B
 
-	PCICR = 1<<PCIE1;	
-	PCMSK1 = 1<<PCINT8;
+
+	PORTD = 0;
+	DDRD = DDRD&(~(1<<PORTD0 | 1<<PORTD4 | 1<<PORTD7));
+	
+	
+
 	//EIMSK = 1<<PCIE1;	
 	
+	sei();				//enable interrupts
+	
+	PCICR = 1<<PCIE1;	
+	PCMSK1 = 1<<PCINT8;
     while(1)		//do nothing to test ISR
     {
-		gotosleep(2);
-		//if(PINB & 0x01)
-		//{
-			//PORTB |= 0x02;
-		//}			
-		//else
-		//{
-			//PORTB &= ~0x02;
-		//}			
-        //TODO:: Please write your application code 
-    }
+		//gotosleep(2);
+		
+		activateEmitter();
+		_delay_ms(500);
+		deactivateEmitter();
+		_delay_ms(500);
+		
+	}		
 }
 
