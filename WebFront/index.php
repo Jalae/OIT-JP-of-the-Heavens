@@ -1,19 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title> FrontEnd </title>
+
+<link rel="stylesheet" href="./css/main.css" type="text/css" />
 <?php
-include('./Google-Voice-PHP-API/GoogleVoice.php');
-//$gv = new GoogleVoice("kehnin.dyer@oit.edu", "pinkballons");
-$gv = new GoogleVoice("kehnin", "");
-
-$sms = $gv->getNewSMS();
-
-//$gv->sendSMS('5035070650', 'Did this work?');
-
-foreach($sms as $s)
-{
-	preg_match('/\+1([0-9]{3})([0-9]{3})([0-9]{4})/', $s['phoneNumber'], $match);
-	$number = '(' . $match[1] . ') ' . $match[2] . '-'. $match[3];
-	echo 'Message from ' . $number . ': ' . $s['message'] . "\n";
-}
-
-
-
+	include('./Google-Voice-PHP-API/GoogleVoice.php');
+	include('./php/main.php');
 ?>
+</head>
+<body>
+<h2> this is a header </h2>
+<br>
+<h3> sub header</h3>
+<br>
+<h4>subsub header</h4>
+<br>
+this is normal text
+<br>
+<a href="blah"> this is a link </a>
+
+</body>
+
+
+
