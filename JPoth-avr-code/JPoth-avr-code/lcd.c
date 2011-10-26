@@ -18,9 +18,15 @@
 
 void lcd_init()
 {
-	// TODO: Set PORTA pins as digital outputs
+	// TODO: Set PORTA RW and E as digital outputs and make sure E is 0.
+	// PORTA RS and DB<7..4> should be output only when necessary. They should
+	// be input at all other times.
 	
-	// Follow 4-Bit Initialization procedure on page 33 of datasheet
+	// See page 47 and 48 for Read and Write timing diagrams.
+	// In 4-bit mode, each read and write is divided into two parts: one for
+	// the high nibble and one for the low nibble.
+	
+	// Follow 4-Bit Initialization procedure on page 33 of datasheet.
 	
 	// Wait more than 15 ms after Vcc = 4.5V
 	// TODO
