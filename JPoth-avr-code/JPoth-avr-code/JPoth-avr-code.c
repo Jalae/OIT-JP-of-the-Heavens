@@ -11,7 +11,7 @@
 #include <avr/sleep.h>
 #include <util/delay.h>
 
-#define TIME 20
+#define TIME 2
 
 ISR(PCINT1_vect)
 {
@@ -49,10 +49,12 @@ void gotosleep(char mode)
 //if dir > 0 forward else backwards
 void step(char dir, int steps)
 {
+	//PINC = PINC |(0x3F);
+	MCUCR = MCUCR | 1<<JTD;//turn off JTAG NOAU
 	PORTC = (PORTC & (~0x3F));//set outputs to 0
 	DDRC = DDRC | 0x3F;//set to outputs
-	char state = 5;
-	PORTC = PORTC | (1<<PC5 | 1<<PC1);
+	char state = 5; //go to an invalid state to setup.
+	PORTC = PORTC | 0x22;//set the enable pins high
 	
 	for(int i = 0;i<steps;i++)
 	{
@@ -79,10 +81,10 @@ void step(char dir, int steps)
 			_delay_ms(TIME);
 			break;
 		default:
-			state = (dir?0:3);
-			PORTC = PORTC & (~( 1<<PC3 | 1<<PC2 | 1<<PC0));
-			PORTC = PORTC | (1<<PC4);
-			_delay_ms(TIME);
+			state = (dir?0:3);//send us to the right state based on direction
+			PORTC = PORTC & (~(1<<PC4 | 1<<PC3 | 1<<PC2 | 1<<PC0));
+			PORTC = PORTC | (1<<PC4);// put us in a valid state
+			//_delay_ms(TIME);
 			break;
 		}
 	}
