@@ -7,6 +7,14 @@
 
 #include "lcd.h"
 
+#include <avr/io.h>
+
+#define PA_LCD_RS_MASK (1 << 0)
+#define PA_LCD_RW_MASK (1 << 1)
+#define PA_LCD_E_MASK (1 << 2)
+#define PA_LCD_DB_MASK (0xF << 4)
+#define PA_LCD_ALL_MASK (PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_E_MASK | PA_LCD_DB_MASK)
+
 /* Our LCD is connected as follows:
  *  LCD Pin | MPU Pin
  *       RS | PA0
@@ -18,9 +26,13 @@
 
 void lcd_init()
 {
-	// TODO: Set PORTA RW and E as digital outputs and make sure E is 0.
-	// PORTA RS and DB<7..4> should be output only when necessary. They should
-	// be input at all other times.
+	// Disable pull-up for inputs, output low for outputs
+	PORTA &= ~PA_LCD_ALL_MASK;
+	// RW and E shall be outputs
+	DDRA |= PA_LCD_RW_MASK | PA_LCD_E_MASK;
+	// RS and DB<7..4> shall be output only when necessary. They shall be input
+	// at all other times.
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
 	// See page 47 and 48 for Read and Write timing diagrams.
 	// In 4-bit mode, each read and write is divided into two parts: one for

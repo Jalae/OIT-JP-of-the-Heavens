@@ -111,6 +111,7 @@ char readSensor()
 
 int main(void)
 {
+	lcd_init();
 
 	
 	DDRB = 1<<PORTB1;		//set pin 1 on port B to input
