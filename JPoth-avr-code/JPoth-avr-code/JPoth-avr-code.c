@@ -9,9 +9,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <avr/delay.h>
+#include <util/delay.h>
 
-#define TIME 3
+#define TIME 50
 
 ISR(PCINT1_vect)
 {
@@ -48,47 +48,48 @@ void gotosleep(char mode)
 //Steps the motor forward or backwards for a number of steps
 //if dir > 0 forward else backwards
 void step(char dir, int steps)
-{
-	PORTC = (PORTC | 0xC4);//set outputs to 0
-	PORTD = (PORTD | 0xBF);
-	DDRC = 0x3B;//set to outputs
-	DDRD = 0x80;//(>,<)
+{	//TODO: change this for the actual wiring of the device
+	PORTC = (PORTC & (~0x3B));//set outputs to 0
+	PORTD = (PORTD & (~0x80));
+	DDRC = DDRC | 0x3B;//set to outputs
+	DDRD = DDRD | 0x80;//(>,<)
 	char state = 0;
-	PORTC = PORTC & (1<<PC5 | 1<<PC1);
+	PORTC = PORTC | (1<<PC5 | 1<<PC1 | 1<<PC4);
 	
 	if (dir > 0)//if greater than 0 forward
 	{
-		while(steps>0)	
+		for(int i = 0;i<steps;i++)	
 		{
 			switch (state)
 			{
-				case '0':
+				case 0:
 					state = 1;
-					PORTC = PORTC & (1<<PC3 | 0<<PC4 | 0<<PC0);
-					PORTD = PORTD & (0<<PD7);
+					PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 1<<PC0);
+					PORTD = PORTD ^ (0<<PD7);
 					_delay_ms(TIME);
 					break;
-				case '1':
+				case 1:
 					state = 2;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 1<<PC0);
-					PORTD = PORTD & (0<<PD7);
+					PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 1<<PC0);
+					PORTD = PORTD ^ (0<<PD7);
 					_delay_ms(TIME);
 					break;
-				case '2':
+				case 2:
 					state = 3;
-					PORTC = PORTC & (0<<PC3 | 1<<PC4 | 0<<PC0);
-					PORTD = PORTD & (0<<PD7);
+					PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 0<<PC0);
+					PORTD = PORTD ^ (1<<PD7);
 					_delay_ms(TIME);
 					break;
-				case '3':
-					state = 4;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 0<<PC0);
-					PORTD = PORTD & (1<<PD7);
+				case 3:
+					state = 0;
+					PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 0<<PC0);
+					PORTD = PORTD ^ (1<<PD7);
 					_delay_ms(TIME);
 					break;
 				default:
 					state = 0;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 0<<PC0);
+					PORTC = PORTC & ( 0<<PC3 | 0<<PC0);
+					PORTC = PORTC | (1 << PC4);
 					PORTD = PORTD & (0<<PD7);
 					_delay_ms(TIME);	
 					break;
@@ -97,37 +98,38 @@ void step(char dir, int steps)
 	}
 	else //go backwards
 	{
-		while(steps>0)
+		for(int i =0;i<steps;i++)
 		{
 			switch (state)
 			{
-				case '0':
-					state = 3;
-					PORTC = PORTC & (1<<PC3 | 0<<PC4 | 0<<PC0);
-					PORTD = PORTD & (0<<PD7);
-					_delay_ms(TIME);
-					break;
-				case '1':
+				case 3:
 					state = 0;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 1<<PC0);
-					PORTD = PORTD & (0<<PD7);
+					PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 1<<PC0);
+					PORTD = PORTD ^ (0<<PD7);
 					_delay_ms(TIME);
 					break;
-				case '2':
-					state = 1;
-					PORTC = PORTC & (0<<PC3 | 1<<PC4 | 0<<PC0);
-					PORTD =PORTD & (0<<PD7);
+				case 2:
+					state = 3;
+					PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 1<<PC0);
+					PORTD = PORTD ^ (0<<PD7);
 					_delay_ms(TIME);
 					break;
-				case '3':
+				case 1:
 					state = 2;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 0<<PC0);
-					PORTD = PORTD & (1<<PD7);
+					PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 0<<PC0);
+					PORTD =PORTD ^ (1<<PD7);
+					_delay_ms(TIME);
+					break;
+				case 0:
+					state = 1;
+					PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 0<<PC0);
+					PORTD = PORTD ^ (1<<PD7);
 					_delay_ms(TIME);
 					break;
 				default:
 					state = 0;
-					PORTC = PORTC & (0<<PC3 | 0<<PC4 | 0<<PC0);
+					PORTC = PORTC & ( 0<<PC3 | 0<<PC0);
+					PORTC = PORTC | (1 << PC4);
 					PORTD = PORTD & (0<<PD7);	
 					_delay_ms(TIME);
 					break;
@@ -181,11 +183,6 @@ int main(void)
     while(1)		//do nothing to test ISR
     {
 		//gotosleep(2);
-		
-		activateEmitter();
-		_delay_ms(500);
-		deactivateEmitter();
-		_delay_ms(500);
 		
 		step(0,200);
 	}
