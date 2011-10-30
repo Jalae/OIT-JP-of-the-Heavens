@@ -9,14 +9,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
-#include <util/delay.h>
 
-#define TIME 2
+
+
+
 
 ISR(PCINT1_vect)
 {
 	PORTB ^= 2;			//not pin 2 to toggle the light
-
 }
 
 /*
@@ -43,58 +43,12 @@ void gotosleep(char mode)
 {
 	SMCR = (mode << 1) | 1; //set Sleep mode control register to mode 1 or "power down",
 		  //sleep mode enabled
-	asm("SLEEP"); //is this an assembly instruction?	
+	asm("SLEEP"); //is this an assembly instruction?
 }
-//Steps the motor forward or backwards for a number of steps
-//if dir > 0 forward else backwards
-void step(char dir, int steps)
-{
-	//PINC = PINC |(0x3F);
-	MCUCR = MCUCR | 1<<JTD;//turn off JTAG NOAU
-	PORTC = (PORTC & (~0x3F));//set outputs to 0
-	DDRC = DDRC | 0x3F;//set to outputs
-	char state = 5; //go to an invalid state to setup.
-	PORTC = PORTC | 0x22;//set the enable pins high
-	
-	for(int i = 0;i<steps;i++)
-	{
-		switch (state)
-		{
-		case 0:
-			state = (dir?1:3);
-			PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 1<<PC2 | 0<<PC0);
-			_delay_ms(TIME);
-			break;
-		case 1:
-			state = (dir?2:0);
-			PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 1<<PC2 | 0<<PC0);
-			_delay_ms(TIME);
-			break;
-		case 2:
-			state = (dir?3:1);
-			PORTC = PORTC ^ (0<<PC4 | 1<<PC3 | 0<<PC2 | 1<<PC0);
-			_delay_ms(TIME);
-			break;
-		case 3:
-			state = (dir?0:2);
-			PORTC = PORTC ^ (1<<PC4 | 0<<PC3 | 0<<PC2 | 1<<PC0);
-			_delay_ms(TIME);
-			break;
-		default:
-			state = (dir?0:3);//send us to the right state based on direction
-			PORTC = PORTC & (~(1<<PC4 | 1<<PC3 | 1<<PC2 | 1<<PC0));
-			PORTC = PORTC | (1<<PC4);// put us in a valid state
-			//_delay_ms(TIME);
-			break;
-		}
-	}
-	PORTC = PORTC & (~0x3F);
-}
-
 
 void activateEmitter()
 {
-	PORTD =  PORTD|(1<<PORTD4); 
+	PORTD =  PORTD|(1<<PORTD4);
 }
 
 void deactivateEmitter()
@@ -109,11 +63,11 @@ char readSensor()
 {
 	PIND5; //empty
 	PIND6;//dispensed
-}  
+}
 
 int main(void)
 {
-	lcd_init();
+	//lcd_init();
 
 	
 	DDRB = 1<<PORTB1;		//set pin 1 on port B to input
@@ -122,20 +76,18 @@ int main(void)
 
 	PORTD = 0;
 	DDRD = DDRD&(~(1<<PORTD0 | 1<<PORTD4));
-	
-	
 
 	//EIMSK = 1<<PCIE1;	
 	
-//	sei();				//enable interrupts
-	
+	sei();				//enable interrupts
 //	PCICR = 1<<PCIE1;	
 //	PCMSK1 = 1<<PCINT8;
+	motor_init();
     while(1)		//do nothing to test ISR
-    {
+	{
 		//gotosleep(2);
 		
-		step(0,200);
+		motor_step(0,200,2);
 	}
 }
 
