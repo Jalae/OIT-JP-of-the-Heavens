@@ -7,12 +7,15 @@
 
 #include "lcd.h"
 
+#include "motor.h"
+
 #include <avr/io.h>
 
 #define PA_LCD_RS_MASK (1 << 0)
 #define PA_LCD_RW_MASK (1 << 1)
 #define PA_LCD_E_MASK (1 << 2)
-#define PA_LCD_DB_MASK (0xF << 4)
+#define PA_LCD_DB_SHIFT 4
+#define PA_LCD_DB_MASK (0xF << PA_LCD_DB_SHIFT)
 #define PA_LCD_ALL_MASK (PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_E_MASK | PA_LCD_DB_MASK)
 
 /* Our LCD is connected as follows:
@@ -23,6 +26,41 @@
  * DB<7..4> | PA<7..4>
  * The LCD operates in 4-bit mode.
  */
+
+void lcd_wait_bf()
+{
+	PORTA |= PA_LCD_RW_MASK;
+	while (PORTA & PA_LCD_RS_MASK) {
+		// Do nothing
+	}
+}
+
+void lcd_write(int rs, int data)
+{
+	// High nibble
+	lcd_wait_bf();
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= ((rs ? PA_LCD_RS_MASK : 0) | ((data >> 4) << PA_LCD_DB_SHIFT));
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	
+	// Low nibble
+	lcd_wait_bf();
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= ((rs ? PA_LCD_RS_MASK : 0) | ((data & 0xF) << PA_LCD_DB_SHIFT));
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+}	
 
 void lcd_init()
 {
@@ -41,39 +79,76 @@ void lcd_init()
 	// Follow 4-Bit Initialization procedure on page 33 of datasheet.
 	
 	// Wait more than 15 ms after Vcc = 4.5V
-	// TODO
+	delay_ms(15);
 	
 	// Function Set Command: (8-bit interface)
-	// TODO
+	// Send RS=0, RW=0, DB=0011
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= (0x3 << PA_LCD_DB_SHIFT);
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
 	// Wait more than 4.1 ms
-	// TODO
+	delay_ms(5);
 	
-	// Function Set Command: (8-bit interface)
-	// TODO
+	// Function Set Command: (8-bit interface) again!
+	// Send RS=0, RW=0, DB=0011
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= (0x3 << PA_LCD_DB_SHIFT);
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
 	// Wait more than 100 us
-	// TODO
+	delay_ms(1);
 	
-	// Function Set Command: (8-bit interface)
+	// Function Set Command: (8-bit interface) yet again!
 	// After this command is written, BF can be checked
-	// TODO
+	// Send RS=0, RW=0, DB=0011
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= (0x3 << PA_LCD_DB_SHIFT);
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
 	// Function Set: Sets interface to 4-bit
-	// TODO
+	// Send RS=0, RW=0, DB=0010
+	lcd_wait_bf();
+	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
+	PORTA |= (0x2 << PA_LCD_DB_SHIFT);
+	delay_ms(1);
+	PORTA |= PA_LCD_E_MASK;
+	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	delay_ms(1);
+	PORTA &= ~PA_LCD_E_MASK;
+	delay_ms(1);
+	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
 	// Function Set: Interface=4-bit, Set N and F for number of characters and font
-	// TODO
+	lcd_write(0, 0x28);
 	
 	// Display OFF
-	// TODO
+	lcd_write(0, 0x08);
 	
 	// Clear Display
-	// TODO
+	lcd_write(0, 0x01);
 	
 	// Entry Mode Set:
-	// TODO
+	lcd_write(0, 0x04);
 	
 	// Display ON (Set C and B for cursor/blink options)
-	// TODO
+	lcd_write(0, 0x0F);
 }
