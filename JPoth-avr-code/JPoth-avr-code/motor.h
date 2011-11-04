@@ -14,7 +14,7 @@
 void motor_init();
 
 //hax to delay a variable amount.
-void delay_ms(int time);
+void delay_var_ms(int time);
 
 
 //Steps the motor forward or backwards for a number of steps
