@@ -125,6 +125,11 @@ static void lcd_write(int rs, int db)
 	DDRA &= ~PA_LCD_DB_MASK;
 }
 
+static void lcd_function_set(int dl, int n, int f)
+{
+	lcd_write(0, 0x20 | (dl?0x10:0) | (n?0x8:0) | (f?0x4:0));
+}
+
 static void lcd_set_dd_ram_address(int addr)
 {
 	lcd_write(0, (1<<7) | addr);
@@ -205,8 +210,8 @@ void lcd_init()
 	
 	// BF can now be checked.
 	
-	// Function Set: Interface=4-bit, Set N and F for number of characters and font
-	lcd_write(0, 0x28);
+	// Function Set: 4-bit interface, 2 lines, 5x7 font
+	lcd_function_set(0, 1, 0);
 	
 	// Display OFF
 	lcd_display_on_off(0, 0, 0);
@@ -223,12 +228,24 @@ void lcd_init()
 	// TESTING //
 	
 	// Display stuff
-	lcd_set_dd_ram_address(0);
+	lcd_set_dd_ram_address(0x00);
 	lcd_putc('H');
 	lcd_putc('e');
 	lcd_putc('l');
 	lcd_putc('l');
 	lcd_putc('o');
+	lcd_set_dd_ram_address(0x40);
+	lcd_putc('N');
+	lcd_putc('o');
+	lcd_putc('l');
+	lcd_putc('a');
+	lcd_putc('n');
+	lcd_putc(' ');
+	lcd_putc('C');
+	lcd_putc('h');
+	lcd_putc('e');
+	lcd_putc('c');
+	lcd_putc('k');
 	
 	/////////////
 }
