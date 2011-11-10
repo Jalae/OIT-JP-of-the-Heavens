@@ -26,7 +26,7 @@
  * The LCD operates in 4-bit mode.
  */
 
-int lcd_read(int rs)
+static int lcd_read(int rs)
 {
 	int result;
 	
@@ -68,18 +68,18 @@ int lcd_read(int rs)
 	return result;
 }
 
-int lcd_read_bf_and_address()
+static int lcd_read_bf_and_address()
 {
 	return lcd_read(0);
 }
 
-void lcd_wait_bf()
+static void lcd_wait_bf()
 {
 	while (lcd_read_bf_and_address() & 0x80)
 		; // Wait for BF to be clear
 }
 
-void lcd_write(int rs, int db)
+static void lcd_write(int rs, int db)
 {
 	lcd_wait_bf();
 	
@@ -125,14 +125,9 @@ void lcd_write(int rs, int db)
 	DDRA &= ~PA_LCD_DB_MASK;
 }
 
-void lcd_set_dd_ram_address(int addr)
+static void lcd_set_dd_ram_address(int addr)
 {
 	lcd_write(0, (1<<7) | addr);
-}
-
-void lcd_write_data_to_ram(int data)
-{
-	lcd_write(1, data);
 }
 
 void lcd_init()
@@ -185,7 +180,6 @@ void lcd_init()
 	_delay_ms(1);
 	
 	// Function Set Command: (8-bit interface) yet again!
-	// After this command is written, BF can be checked
 	// Send RS=0, RW=0, DB=0011
 	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
 	PORTA |= (0x3 << PA_LCD_DB_SHIFT);
@@ -199,7 +193,6 @@ void lcd_init()
 	
 	// Function Set: Sets interface to 4-bit
 	// Send RS=0, RW=0, DB=0010
-	lcd_wait_bf();
 	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
 	PORTA |= (0x2 << PA_LCD_DB_SHIFT);
 	_delay_ms(1);
@@ -210,26 +203,52 @@ void lcd_init()
 	_delay_ms(1);
 	DDRA &= ~PA_LCD_DB_MASK;
 	
+	// BF can now be checked.
+	
 	// Function Set: Interface=4-bit, Set N and F for number of characters and font
 	lcd_write(0, 0x28);
 	
 	// Display OFF
-	lcd_write(0, 0x08);
+	lcd_display_on_off(0, 0, 0);
 	
 	// Clear Display
-	lcd_write(0, 0x01);
+	lcd_clear_display();
 	
-	// Entry Mode Set:
-	lcd_write(0, 0x04);
+	// Set Entry Mode (initial configuration here)
+	lcd_set_entry_mode(1, 0);
 	
-	// Display ON (Set C and B for cursor/blink options)
-	lcd_write(0, 0x0F);
+	// Display ON (initial configuration here)
+	lcd_display_on_off(1, 1, 1);
 	
 	// TESTING //
 	
 	// Display stuff
 	lcd_set_dd_ram_address(0);
-	lcd_write_data_to_ram('H');
+	lcd_putc('H');
+	lcd_putc('e');
+	lcd_putc('l');
+	lcd_putc('l');
+	lcd_putc('o');
 	
 	/////////////
+}
+
+void lcd_clear_display()
+{
+	lcd_write(0, 0x01);
+}
+
+void lcd_set_entry_mode(int id, int s)
+{
+	lcd_write(0, 0x4 | (id?0x2:0) | (s?0x1:0));
+}
+
+void lcd_display_on_off(int d, int c, int b)
+{
+	lcd_write(0, 0x8 | (d?0x4:0) | (c?0x2:0) | (b?0x1:0));
+}
+
+void lcd_putc(char c)
+{
+	 lcd_write(1, c);
 }
