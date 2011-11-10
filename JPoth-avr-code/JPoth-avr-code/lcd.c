@@ -26,68 +26,108 @@
  * The LCD operates in 4-bit mode.
  */
 
-void lcd_set_db_input()
+int lcd_read(int rs)
 {
-	// Disable pull-up for inputs
-	PORTA &= ~PA_LCD_DB_MASK;
-	DDRA &= ~PA_LCD_DB_MASK;
-}
-
-void lcd_signal_out(int rs, int rw, int db)
-{
-	// Set DB pins as outputs
-	DDRA |= PA_LCD_DB_MASK;
+	int result;
 	
-	// TODO: Look for AVR features for manipulating PORTA atomically
+	// DB pins are assumed to be configured as high-Z inputs
 	
-	// Output signals on PORTA
-	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
-	PORTA |= ((rs?PA_LCD_RS_MASK:0) | (rw?PA_LCD_RW_MASK:0) | (db<<PA_LCD_DB_SHIFT));
+	// Set RS as indicated
+	// Set RW high
+	if (rs) {
+		PORTA |= (PA_LCD_RS_MASK | PA_LCD_RW_MASK);
+	} else {
+		PORTA &= ~PA_LCD_RS_MASK;
+		PORTA |= PA_LCD_RW_MASK;
+	}
+	// Delay tAS
+	_delay_ms(1);
+	
+	// Set E high
+	PORTA |= PA_LCD_E_MASK;
+	// Delay tDDR
+	_delay_ms(1);
+	// Read upper nibble
+	result = ((PINA & PA_LCD_DB_MASK) >> PA_LCD_DB_SHIFT) << 4;
+	// Set E low
+	PORTA &= ~PA_LCD_E_MASK;
+	// Delay tH
+	_delay_ms(1);
+	
+	// Set E high
+	PORTA |= PA_LCD_E_MASK;
+	// Delay tDDR
+	_delay_ms(1);
+	// Read lower nibble
+	result |= ((PINA & PA_LCD_DB_MASK) >> PA_LCD_DB_SHIFT);
+	// Set E low
+	PORTA &= ~PA_LCD_E_MASK;
+	// Delay tH
+	_delay_ms(1);
+	
+	return result;
 }
 
 int lcd_read_bf_and_address()
 {
-	return 0;
+	return lcd_read(0);
 }
 
 void lcd_wait_bf()
 {
-	// FIXME: This is NOT how to read busy-flag.
-	PORTA |= PA_LCD_RW_MASK;
-	while (PORTA & PA_LCD_RS_MASK)
-		; // Do nothing
+	while (lcd_read_bf_and_address() & 0x80)
+		; // Wait for BF to be clear
 }
 
-void lcd_write(int rs, int data)
+void lcd_write(int rs, int db)
 {
 	lcd_wait_bf();
 	
-	// High nibble
-	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
-	PORTA |= ((rs ? PA_LCD_RS_MASK : 0) | ((data >> 4) << PA_LCD_DB_SHIFT));
+	// Set RS as indicated
+	// Set RW low
+	if (rs) {
+		PORTA |= PA_LCD_RS_MASK;
+		PORTA &= ~PA_LCD_RW_MASK;
+	} else {
+		PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK);
+	}
+	// Delay tAS
 	_delay_ms(1);
-	PORTA |= PA_LCD_E_MASK;
-	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
-	_delay_ms(1);
-	PORTA &= ~PA_LCD_E_MASK;
-	_delay_ms(1);
-	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
 	
-	// Low nibble
-	PORTA &= ~(PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_DB_MASK);
-	PORTA |= ((rs ? PA_LCD_RS_MASK : 0) | ((data & 0xF) << PA_LCD_DB_SHIFT));
-	_delay_ms(1);
+	// Set E high
+	// Set DB as high nibble
+	// Set DB pins as outputs
 	PORTA |= PA_LCD_E_MASK;
-	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	PORTA &= ~PA_LCD_DB_MASK;
+	PORTA |= ((db >> 4) << PA_LCD_DB_SHIFT);
+	DDRA |= PA_LCD_DB_MASK;
+	// Delay tDSW
 	_delay_ms(1);
+	// Set E low
 	PORTA &= ~PA_LCD_E_MASK;
+	// Delay tH
 	_delay_ms(1);
-	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
-}	
+	
+	// Set E high
+	// Set DB as low nibble
+	PORTA |= PA_LCD_E_MASK;
+	PORTA &= ~PA_LCD_DB_MASK;
+	PORTA |= ((db & 0xF) << PA_LCD_DB_SHIFT);
+	// Delay tDSW
+	_delay_ms(1);
+	// Set E low
+	PORTA &= ~PA_LCD_E_MASK;
+	// Delay tH
+	_delay_ms(1);
+	
+	// Set DB pins as high-Z inputs
+	PORTA &= ~PA_LCD_DB_MASK;
+	DDRA &= ~PA_LCD_DB_MASK;
+}
 
 void lcd_set_dd_ram_address(int addr)
 {
-	lcd_write(0, (1<<8) | addr);
+	lcd_write(0, (1<<7) | addr);
 }
 
 void lcd_write_data_to_ram(int data)
@@ -99,11 +139,11 @@ void lcd_init()
 {
 	// Disable pull-up for inputs, output low for outputs
 	PORTA &= ~PA_LCD_ALL_MASK;
-	// RS, RW and E shall be outputs
-	DDRA |= PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_E_MASK;
 	// DB<7..4> shall be output only when necessary. They shall be input at all
 	// other times.
-	lcd_set_db_input();
+	DDRA &= ~PA_LCD_DB_MASK;
+	// RS, RW and E shall be outputs
+	DDRA |= PA_LCD_RS_MASK | PA_LCD_RW_MASK | PA_LCD_E_MASK;
 	
 	// See page 47 and 48 for Read and Write timing diagrams.
 	// In 4-bit mode, each read and write is divided into two parts: one for
@@ -139,7 +179,7 @@ void lcd_init()
 	_delay_ms(1);
 	PORTA &= ~PA_LCD_E_MASK;
 	_delay_ms(1);
-	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	DDRA &= ~PA_LCD_DB_MASK;
 	
 	// Wait more than 100 us
 	_delay_ms(1);
@@ -151,11 +191,11 @@ void lcd_init()
 	PORTA |= (0x3 << PA_LCD_DB_SHIFT);
 	_delay_ms(1);
 	PORTA |= PA_LCD_E_MASK;
-	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	DDRA |= PA_LCD_DB_MASK;
 	_delay_ms(1);
 	PORTA &= ~PA_LCD_E_MASK;
 	_delay_ms(1);
-	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	DDRA &= ~PA_LCD_DB_MASK;
 	
 	// Function Set: Sets interface to 4-bit
 	// Send RS=0, RW=0, DB=0010
@@ -164,11 +204,11 @@ void lcd_init()
 	PORTA |= (0x2 << PA_LCD_DB_SHIFT);
 	_delay_ms(1);
 	PORTA |= PA_LCD_E_MASK;
-	DDRA |= (PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	DDRA |= PA_LCD_DB_MASK;
 	_delay_ms(1);
 	PORTA &= ~PA_LCD_E_MASK;
 	_delay_ms(1);
-	DDRA &= ~(PA_LCD_RS_MASK | PA_LCD_DB_MASK);
+	DDRA &= ~PA_LCD_DB_MASK;
 	
 	// Function Set: Interface=4-bit, Set N and F for number of characters and font
 	lcd_write(0, 0x28);
