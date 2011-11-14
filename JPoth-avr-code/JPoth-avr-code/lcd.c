@@ -232,7 +232,7 @@ void lcd_init()
 	
 	// Display stuff
 	lcd_set_dd_ram_address(0x00);
-	lcd_puts("Hello\nNolan Check");
+	lcd_puts("Line 1\nLine 2\nLine 3\nLine 4");
 	
 	/////////////
 }
@@ -266,9 +266,19 @@ void lcd_puts(const char* str)
 		if (str[i] == '\n')
 		{
 			// Perform carriage return
-			if (g_curAddress < 0x40) {
+			// See Section 1.7.6 of datasheet for DDRAM addressing. It's really
+			// weird.
+			if (g_curAddress < 20) {
+				// Move from first line to second line
+				lcd_set_dd_ram_address(0x40);
+			} else if (g_curAddress < 40) {
+				// Move from third line to fourth line
+				lcd_set_dd_ram_address(0x40 + 20);
+			} else if (g_curAddress < 0x40 + 20) {
+				// Move from second line to third line
 				lcd_set_dd_ram_address(20);
 			}
+			// TODO: Do something when fourth line overflows.
 		}
 		else
 		{
