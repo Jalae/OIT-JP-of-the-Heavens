@@ -130,9 +130,12 @@ static void lcd_function_set(int dl, int n, int f)
 	lcd_write(0, 0x20 | (dl?0x10:0) | (n?0x8:0) | (f?0x4:0));
 }
 
+static int g_curAddress = 0x00;
+
 static void lcd_set_dd_ram_address(int addr)
 {
 	lcd_write(0, (1<<7) | addr);
+	g_curAddress = addr;
 }
 
 void lcd_init()
@@ -229,23 +232,7 @@ void lcd_init()
 	
 	// Display stuff
 	lcd_set_dd_ram_address(0x00);
-	lcd_putc('H');
-	lcd_putc('e');
-	lcd_putc('l');
-	lcd_putc('l');
-	lcd_putc('o');
-	lcd_set_dd_ram_address(0x40);
-	lcd_putc('N');
-	lcd_putc('o');
-	lcd_putc('l');
-	lcd_putc('a');
-	lcd_putc('n');
-	lcd_putc(' ');
-	lcd_putc('C');
-	lcd_putc('h');
-	lcd_putc('e');
-	lcd_putc('c');
-	lcd_putc('k');
+	lcd_puts("Hello\nNolan Check");
 	
 	/////////////
 }
@@ -268,4 +255,26 @@ void lcd_display_on_off(int d, int c, int b)
 void lcd_putc(char c)
 {
 	 lcd_write(1, c);
+	 ++g_curAddress;
+}
+
+void lcd_puts(const char* str)
+{
+	int i = 0;
+	while (str[i])
+	{
+		if (str[i] == '\n')
+		{
+			// Perform carriage return
+			if (g_curAddress < 0x40) {
+				lcd_set_dd_ram_address(20);
+			}
+		}
+		else
+		{
+			lcd_putc(str[i]);
+		}
+		
+		++i;
+	}
 }

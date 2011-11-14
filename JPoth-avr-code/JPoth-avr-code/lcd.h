@@ -25,4 +25,6 @@ void lcd_display_on_off(int d, int c, int b);
 
 void lcd_putc(char c);
 
+void lcd_puts(const char* str);
+
 #endif /* LCD_H_ */
