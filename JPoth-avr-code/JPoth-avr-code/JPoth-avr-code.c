@@ -14,6 +14,7 @@
 
 
 
+
 ISR(PCINT1_vect)
 {
 	PORTB ^= 2;			//not pin 2 to toggle the light
@@ -67,9 +68,12 @@ char readSensor()
 
 int main(void)
 {
+	char thing[100];
+	uart_init();
+	ATsend("test");
+	ATrecive(thing);
 	lcd_init();
-
-	
+	sei();	
 	DDRB = 1<<PORTB1;		//set pin 1 on port B to input
 	PORTB = 0xFF;		//Activate internal pull up resistors on port B
 
