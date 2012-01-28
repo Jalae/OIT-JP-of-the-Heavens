@@ -14,6 +14,7 @@
 
 
 
+
 ISR(PCINT1_vect)
 {
 	PORTB ^= 2;			//not pin 2 to toggle the light
@@ -71,9 +72,12 @@ int main(void)
 	DDRC = 0 << PORTC7;
 	PORTC = PORTC | (1 << PORTC7);
 	
+//	char thing[100];
+//	uart_init();
+//	ATsend("test");
+//	ATrecive(thing);
 	lcd_init();
-
-	
+	sei();	
 	DDRB = 1<<PORTB1;		//set pin 1 on port B to input
 	PORTB = 0xFF;		//Activate internal pull up resistors on port B
 
@@ -90,7 +94,7 @@ int main(void)
     
 	
 	delay_var_ms(5000);
-	PORTC = PORTC & (0 << PORTC7);
+	PORTC = PORTC & (0 << PORTC7); //kill myself
 	
 	
 	while(1)		//do nothing to test ISR
