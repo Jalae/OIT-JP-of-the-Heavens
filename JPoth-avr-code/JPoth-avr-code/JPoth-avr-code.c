@@ -67,6 +67,10 @@ char readSensor()
 
 int main(void)
 {
+	//first thing is to assert the relay. KEEP US ALIVE
+	DDRC = 0 << PORTC7;
+	PORTC = PORTC | (1 << PORTC7);
+	
 	lcd_init();
 
 	
@@ -83,7 +87,13 @@ int main(void)
 //	PCICR = 1<<PCIE1;	
 //	PCMSK1 = 1<<PCINT8;
 	motor_init();
-    while(1)		//do nothing to test ISR
+    
+	
+	delay_var_ms(5000);
+	PORTC = PORTC & (0 << PORTC7);
+	
+	
+	while(1)		//do nothing to test ISR
 	{
 		//gotosleep(2);
 		
