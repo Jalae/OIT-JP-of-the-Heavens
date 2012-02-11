@@ -5,13 +5,17 @@
  *  Author:   	Kehnin Dyer
  * 		Tyler Martin
 */ 
+#ifndef F_CPU
+#define F_CPU 8000000UL
+#endif /* F_CPU */
 
 #include <avr/io.h>
-#include <avr/interrupt.h>
-#include <avr/sleep.h>
+//#include <avr/interrupt.h>
+//#include <avr/sleep.h>
+#include <util/delay.h>
 #include "motor.h"
-
-
+#include "lcd.h"
+#include "cellular.h"
 
 
 
@@ -57,6 +61,13 @@ void deactivateEmitter()
 	PORTD = PORTD&(~(1<<PORTD4));
 }
 
+void ToggleCellModule()
+{
+	PORTB = PORTB | (1<<PORTB1);
+	_delay_ms(1000);
+	PORTB = PORTB & ~(1<<PORTB1);
+}
+
 //
 //return value
 // XXXXXX<Bit for Empty><Bit for >
@@ -68,20 +79,88 @@ char readSensor()
 
 int main(void)
 {
-	//first thing is to assert the relay. KEEP US ALIVE. I'm still alive!
-	DDRC = 0 << PORTC7;
-	PORTC = PORTC | (1 << PORTC7);
+	
 
-	DDRB = 0 << PORTB1;
-	PORTB = PORTB &(0<<PORTB1);
-	delay_var_ms(15000);
-	PORTB = PORTB | (1<<PORTB1); //start cell module
-	delay_var_ms(15000);
-	PORTB = PORTB & (0<<PORTB1);
-	delay_var_ms(15000);
-	PORTB = PORTB | (1<<PORTB1); //start cell module
-	delay_var_ms(15000);
-	PORTB = PORTB & (0<<PORTB1);
+	//first thing is to assert the relay. KEEP US ALIVE. I'm still alive!
+	DDRC =  DDRC | (1 << PORTC7); //make powerctrl output
+	PORTC = PORTC | (1 << PORTC7);// assert powerctrl
+	
+	uart_init();
+	lcd_init();
+	lcd_puts("Setting up");
+	_delay_ms(5000);
+	_delay_ms(1000);
+
+	
+	DDRB = DDRB | (1 << PORTB1);//make Cell phone ON/OFF output
+	DDRB = DDRB & (0 << PORTB2); //set pin 3 "poweron MON" to be input
+	
+	_delay_ms(1000); //wait for stability
+	lcd_puts("|");
+	
+	if((PINB & (1<<PINB2))) // is it on?
+	{
+		ToggleCellModule(); //turn it off.
+		int i = 1;
+		while((PINB & (1<<PINB2)))
+		{
+			i++;
+			if(i == 0)		//egads we done timed out
+			{
+				ToggleCellModule();			
+			}
+		} 
+	}
+	lcd_puts(".");
+	//delay_var_ms(1000);
+	
+	if(!(PINB & (1<<PINB2))) // is it off?
+	{
+		ToggleCellModule();	//turn it on
+		int i = 1;
+		while(!(PINB & (1<<PINB2)))
+		{
+			i++;
+			if(i == 0)
+			{
+				ToggleCellModule();			
+			}
+		} 
+	}
+char message[100];
+
+lcd_clear_display();
+
+_delay_ms(1000);
+
+ATsend_no("AT\r");
+lcd_puts("AT\n");
+_delay_ms(1000);
+//ATrecive_no(message);
+//lcd_puts(message);
+lcd_clear_display();
+ATsend_no("AT+cmgf=1\r");
+lcd_puts("cmf");
+_delay_ms(1000);
+ATsend_no("AT+csmp=17,167,0,16\r");
+lcd_puts(".csm");
+_delay_ms(1000); //ctrl-z == 26 decimal ==\cz
+ATsend_no("AT+cmgs=\"+15035070650\"\r");
+lcd_puts("\n.mgs");
+_delay_ms(1000);
+ATsend_no("Omg did this work?\r\cz\r");
+_delay_ms(1000);
+lcd_puts("\nall clear");
+
+lcd_puts("we got here");
+	
+//we should have the cell module running at this point
+
+while(1)
+{
+	
+	
+}
 /*	
 //	char thing[100];
 //	uart_init();
