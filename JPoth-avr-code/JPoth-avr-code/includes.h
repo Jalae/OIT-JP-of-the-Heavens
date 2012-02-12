@@ -20,6 +20,7 @@
 #include "motor.h"
 #include "lcd.h"
 #include "uart.h"
+#include "cellular.h"
 //#include "ancient.h"
 
 
