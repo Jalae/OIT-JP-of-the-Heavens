@@ -5,17 +5,19 @@ Contains functions for using the UART to talk to the cellular module.
 //4800 bps, 8 data bits, no parity, 1 stop bit.
 //#include "cellular.h"
 
+#define F_CPU 8000000UL
+//TODO: figure out which header is changing the value of F_CPU
+
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <string.h>
 
-#ifndef F_CPU
 #define F_CPU 8000000UL
-#endif /* F_CPU */
+
 #define USART_BAUDRATE 4800
-#define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16))) - 1)
-
-
+//#define BAUD_PRESCALE (((F_CPU / (USART_BAUDRATE * 16))) - 1) //were in fast mode?
+#define BAUD_PRESCALE 103 //slow mode 4800 baud @8mhz
+//#define BAUD_PRESCALE 51
 
 
 char rbuff[100];
@@ -37,7 +39,7 @@ void uart_init()
 	UCSR0B |= (1<<RXEN0) | (1<<TXEN0);
 	
 	//enable receive and transmit interrupts
-	UCSR0B |= (1 << RXCIE0) | (1 << TXCIE0);
+	UCSR0B |= (1 << RXCIE0) /*| (1 << TXCIE0)*/;
 //	sei();
 }
 
@@ -65,15 +67,38 @@ void ATsend_no(char * s)
 	//lcd_puts("\n");		
 }
 
-/*
+
 //Receives the result of the AT command
 void ATrecive(char * message)
 {
-	while(RXdone == 0);
+	//while(RXdone == 0);
+	* rptr = 0;
 	strcpy(message,rbuff);
+	rptr = rbuff;
 };
-*/
 
+void CleanMessage(char* s)
+{
+	char buff[100];
+	int i = 0;
+	strcpy(s, buff);
+	
+	while((buff[i]!='\n' && buff[i-1] != '\r' && (i-2 > 1)) )
+	{
+		if(buff[i] > 31)
+		{
+			*s = buff[i];
+			s++;
+		}
+		i++;
+	}	
+	*s = 0;
+}
+
+
+
+
+/*
 void ATrecive_no(char * s)
 {	
 	int i = 1;
@@ -95,8 +120,9 @@ void ATrecive_no(char * s)
 	*rptr = 0;
 }	
 
-
+*/
 /*
+
 ISR(USART0_TX_vect)
 {
 	tptr++;
@@ -110,21 +136,20 @@ ISR(USART0_TX_vect)
 		TXdone = 1;
 	}
 }
+*/
 
 ISR(USART0_RX_vect)
 {
-	RXdone = 0;
+//	RXdone = 0;
 	*rptr = UDR0;
-	if(*rptr == '\r')
-	{
-		*rptr = 0;
-		
-		rptr = rbuff;
-		RXdone = 1;
-	}
-	else
-	{
+//	if(*rptr == '\r')//we, unforunately, can never know when we are done.
+//	{
+//		*rptr = 0;
+//		rptr = rbuff;
+//		RXdone = 1;
+//	}
+//	else
+//	{
 	rptr++;
-	}	
+//	}	
 }
-*/

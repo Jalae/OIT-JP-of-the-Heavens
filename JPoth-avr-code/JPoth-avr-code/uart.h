@@ -16,4 +16,6 @@ void ATrecive(char * message);
 
 void ATrecive_no(char * s);
 
+void CleanMessage(char* s);
+
 #endif /* __CELLULAR_H_ */

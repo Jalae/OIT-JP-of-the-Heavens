@@ -10,12 +10,12 @@
 #endif /* F_CPU */
 
 #include <avr/io.h>
-//#include <avr/interrupt.h>
+#include <avr/interrupt.h>
 //#include <avr/sleep.h>
 #include <util/delay.h>
 #include "motor.h"
 #include "lcd.h"
-#include "cellular.h"
+#include "uart.h"
 
 
 
@@ -79,7 +79,7 @@ char readSensor()
 
 int main(void)
 {
-	
+	char Z[3] = {26,'\r', 0};
 
 	//first thing is to assert the relay. KEEP US ALIVE. I'm still alive!
 	DDRC =  DDRC | (1 << PORTC7); //make powerctrl output
@@ -87,6 +87,8 @@ int main(void)
 	
 	uart_init();
 	lcd_init();
+	
+	
 	lcd_puts("Setting up");
 	_delay_ms(5000);
 	_delay_ms(1000);
@@ -133,32 +135,94 @@ lcd_clear_display();
 
 _delay_ms(1000);
 
+
 ATsend_no("AT\r");
 lcd_puts("AT\n");
-_delay_ms(1000);
-//ATrecive_no(message);
+_delay_ms(5000);
+//ATrecive(message);
+//CleanMessage(message);
 //lcd_puts(message);
+lcd_puts("\nwe got here");
+ATsend_no("AT\r");
+_delay_ms(5000);
+
 lcd_clear_display();
 ATsend_no("AT+cmgf=1\r");
-lcd_puts("cmf");
+lcd_puts("cmgf");
+_delay_ms(5000);
+ATsend_no("AT+cmgf=1\r");
+lcd_puts("cmgf");
+_delay_ms(5000);
+//above only needs to happen 1nce 
+
+//ATsend_no("AT+csmp=17,167,0,16\r");
+//lcd_puts(".csm");
+//_delay_ms(5000); //ctrl-z == 26 decimal ==\x1A
+lcd_clear_display();
+lcd_puts("1-5");
+ATsend_no("AT+cmgs=\"+15096291633\"\r");
+lcd_puts("\n");
 _delay_ms(1000);
-ATsend_no("AT+csmp=17,167,0,16\r");
-lcd_puts(".csm");
-_delay_ms(1000); //ctrl-z == 26 decimal ==\cz
-ATsend_no("AT+cmgs=\"+15035070650\"\r");
+ATsend_no("this is text 1 of 5, for teddi - nyan~\r");
+ATsend_no(Z);
+lcd_puts("\ncomplete");
+_delay_ms(5000);
+
+
+
+lcd_clear_display();
+lcd_puts("2-5");
+ATsend_no("AT+cmgs=\"+15037987396\"\r");
 lcd_puts("\n.mgs");
 _delay_ms(1000);
-ATsend_no("Omg did this work?\r\cz\r");
-_delay_ms(1000);
-lcd_puts("\nall clear");
+ATsend_no("this is text 2 of 5, for Alia\r");
+ATsend_no(Z);
+lcd_puts("\ncomplete");
+_delay_ms(5000);
 
-lcd_puts("we got here");
-	
+
+
+lcd_clear_display();
+lcd_puts("3-5");
+ATsend_no("AT+cmgs=\"+15033029212\"\r");
+lcd_puts("\n.mgs");
+_delay_ms(1000);
+ATsend_no("this is text 3 of 5, for Nannette - from tyler's project\r");
+
+ATsend_no(Z);
+lcd_puts("\ncomplete");
+_delay_ms(5000);
+
+
+lcd_clear_display();
+lcd_puts("4-5");
+ATsend_no("AT+cmgs=\"+15096291634\"\r");
+lcd_puts("\n.mgs");
+_delay_ms(1000);
+ATsend_no("this is text 4 of 5, for Diane - from za box\r");
+ATsend_no(Z);
+lcd_puts("\ncomplete");
+_delay_ms(5000);
+
+lcd_clear_display();
+lcd_puts("5-5");
+ATsend_no("AT+cmgs=\"+15096291626\"\r");
+lcd_puts("\n.mgs");
+_delay_ms(1000);
+ATsend_no("this is text 5 of 5, for K'lah - uguu\r");
+ATsend_no(Z);
+lcd_puts("\ncomplete");
+_delay_ms(5000);
+
+
+
+
+
 //we should have the cell module running at this point
 
 while(1)
 {
-	
+	//ATsend_no("U");
 	
 }
 /*	
