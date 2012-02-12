@@ -1,2 +1,7 @@
-trying to update and again
-testing commmit by tyler
+This is the readme for the JP of The Heavens Project
+
+This project involves the creation of a smart, wireless enabled real estate flier box.  Such a box will be able to update the real estate agent as soon as the box is empty.  The box will also be able to dispense the flier to the user so that the fliers are managed and used accordingly.
+The wireless communication will be accomplished with a cellular module that will be controlled by a microcontroller.  The communication will rely on an existing GSM network and relay to google voice where it will be handled by a software front end.  The microcontroller will also be responsible for sensing the status of the box using using optocouplers to sense if the paper has been dispensed and if there are more papers to be dispensed.  The microcontroller will initially sleep until a button interrupts it.  When the microcontroller is awake it outputs to the user the status of the box.  After the button is pressed the paper is dispensed using a bipolar stepper motor driven with an H-bridge.  This setup should be able to be powered off of a nine volt battery that should last at least 400,000 hours.  This could be supplemented with solar cells to be self sustaining but that is relatively optional at this point. 
+The cost for one of these smart boxes would be around $150 each and each time they update a SMS message would be sent costing ten cents.  Of course, the prices on these boxes may be able to be lowered as well as the texting service after they are put into production.  In the long run, money would be saved due to completely removing unnecessary trips to and from remote houses saving on gas money and time the realtor wastes in transit enabling them to refill the boxes without needing to check on them.
+
+
