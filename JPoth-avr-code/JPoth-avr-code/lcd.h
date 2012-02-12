@@ -9,7 +9,10 @@
 #ifndef LCD_H_
 #define LCD_H_
 
+//configures the entry mode and turns the display on.
 void lcd_init();
+
+//clears the display sets the index back to zero.
 void lcd_clear_display();
 
 // lcd_set_entry_mode: Controls what happens when a character is entered.

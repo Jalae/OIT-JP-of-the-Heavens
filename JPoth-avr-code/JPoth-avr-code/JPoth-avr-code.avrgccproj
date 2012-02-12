@@ -15,7 +15,7 @@
     </ToolchainDirPath>
     <MakeDirPath>
     </MakeDirPath>
-    <GlobalToolchainPath>C:\Program Files (x86)\Atmel\AVR Studio 5.0\AVR ToolChain\bin</GlobalToolchainPath>
+    <GlobalToolchainPath>C:\Program Files\Atmel\AVR Studio 5.0\AVR ToolChain\bin</GlobalToolchainPath>
     <AvrGccProjectExtensions>
     </AvrGccProjectExtensions>
     <AssemblyName>JPoth-avr-code</AssemblyName>
@@ -110,10 +110,10 @@
     <GenerateEepFile>True</GenerateEepFile>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="cellular.c">
+    <Compile Include="uart.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="cellular.h">
+    <Compile Include="uart.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="JPoth-avr-code.c">

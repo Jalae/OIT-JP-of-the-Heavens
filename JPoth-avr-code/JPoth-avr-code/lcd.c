@@ -232,7 +232,7 @@ void lcd_init()
 	
 	// Display stuff
 	lcd_set_dd_ram_address(0x00);
-	lcd_puts("Line 1\nLine 2\nLine 3\nLine 4");
+	//lcd_puts("Line 1\nLine 2\nLine 3\nLine 4");
 	
 	/////////////
 }
@@ -240,6 +240,7 @@ void lcd_init()
 void lcd_clear_display()
 {
 	lcd_write(0, 0x01);
+	lcd_set_dd_ram_address(0x00);
 }
 
 void lcd_set_entry_mode(int id, int s)
