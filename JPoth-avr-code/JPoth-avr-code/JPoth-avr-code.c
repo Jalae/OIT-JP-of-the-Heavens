@@ -4,33 +4,9 @@
  * Created: 10/7/2011 2:28:09 PM
  *  Author:	Kehnin Dyer
  * 			Tyler Martin
-*/ 
+*/
 
 #include "includes.h"
-
-
-
-
-
-void activateEmitter()
-{
-	PORTD =  PORTD|(1<<PORTD4);
-}
-
-void deactivateEmitter()
-{
-	PORTD = PORTD&(~(1<<PORTD4));
-}
-
-
-//
-//return value
-// XXXXXX<Bit for Empty><Bit for >
-char readSensor()
-{
-	PIND5; //empty
-	PIND6;//dispensed
-}
 
 int main(void)
 {
@@ -60,12 +36,6 @@ int main(void)
 		//ATsend_no("U");
 	}
 /*	
-//	char thing[100];
-//	uart_init();
-//	ATsend("test");
-//	ATrecive(thing);
-	lcd_init();
-	sei();	
 	//DDRB = 1<<PORTB1;		//set pin 1 on port B to input
 	//PORTB = 0xFF;		//Activate internal pull up resistors on port B
 
