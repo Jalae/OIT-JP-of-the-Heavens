@@ -5,24 +5,10 @@
  *  Author:   	Kehnin Dyer
  * 		Tyler Martin
 */ 
-#ifndef F_CPU
-#define F_CPU 8000000UL
-#endif /* F_CPU */
 
-#include <avr/io.h>
-#include <avr/interrupt.h>
-//#include <avr/sleep.h>
-#include <util/delay.h>
-#include "motor.h"
-#include "lcd.h"
-#include "uart.h"
+#include "includes.h"
 
 
-
-ISR(PCINT1_vect)
-{
-	PORTB ^= 2;			//not pin 2 to toggle the light
-}
 
 /*
 for our purposes we can actually put the uC all the way to "power down" mode
